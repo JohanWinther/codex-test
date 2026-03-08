@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fibonacci Player</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f6fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #2563eb;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111827;
+          --card: #1f2937;
+          --text: #f9fafb;
+          --muted: #9ca3af;
+          --accent: #60a5fa;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        text-align: center;
+        background: var(--card);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+        width: min(90vw, 460px);
+      }
+
+      h1 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 1.4rem;
+      }
+
+      p {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: var(--muted);
+      }
+
+      .track {
+        position: relative;
+        width: 330px;
+        max-width: 100%;
+        height: 88px;
+        margin: 0 auto 1.5rem;
+        overflow: hidden;
+      }
+
+      .num {
+        position: absolute;
+        width: 100px;
+        height: 88px;
+        display: grid;
+        place-items: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        border-radius: 12px;
+        border: 1px solid color-mix(in hsl, var(--text) 15%, transparent);
+        background: color-mix(in hsl, var(--card) 80%, var(--accent));
+        transition: left 0.6s ease, opacity 0.6s ease, transform 0.6s ease;
+      }
+
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 0.65rem 1.4rem;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        background: var(--accent);
+        color: white;
+      }
+
+      button:hover {
+        filter: brightness(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Fibonacci Generator</h1>
+      <p>Play to animate the next number every second.</p>
+
+      <div class="track" id="track" aria-live="polite"></div>
+      <button id="toggle" type="button">Play</button>
+    </main>
+
+    <script>
+      const track = document.getElementById('track');
+      const toggleButton = document.getElementById('toggle');
+
+      let pair = [0, 1];
+      let running = false;
+      let timer;
+      let animating = false;
+
+      function makeNumber(value, slot) {
+        const el = document.createElement('div');
+        el.className = 'num';
+        el.textContent = value;
+        el.style.left = `${slot * 110}px`;
+        return el;
+      }
+
+      function drawPair() {
+        track.innerHTML = '';
+        track.append(makeNumber(pair[0], 0), makeNumber(pair[1], 1));
+      }
+
+      function step() {
+        if (animating) {
+          return;
+        }
+        animating = true;
+
+        const [a, b] = pair;
+        const c = a + b;
+
+        const first = makeNumber(a, 0);
+        const second = makeNumber(b, 1);
+        const third = makeNumber(c, 2);
+
+        third.style.opacity = '0';
+        third.style.transform = 'translateX(14px)';
+
+        track.innerHTML = '';
+        track.append(first, second, third);
+
+        requestAnimationFrame(() => {
+          first.style.left = '-110px';
+          first.style.opacity = '0';
+
+          second.style.left = '0px';
+
+          third.style.left = '110px';
+          third.style.opacity = '1';
+          third.style.transform = 'translateX(0)';
+        });
+
+        window.setTimeout(() => {
+          pair = [b, c];
+          drawPair();
+          animating = false;
+        }, 620);
+      }
+
+      function setRunning(next) {
+        running = next;
+        toggleButton.textContent = running ? 'Pause' : 'Play';
+
+        if (running) {
+          timer = window.setInterval(step, 1000);
+          step();
+        } else {
+          window.clearInterval(timer);
+        }
+      }
+
+      toggleButton.addEventListener('click', () => {
+        setRunning(!running);
+      });
+
+      drawPair();
+    </script>
+  </body>
+</html>
